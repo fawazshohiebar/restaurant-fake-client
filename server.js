@@ -1,12 +1,23 @@
 const express = require("express");
 const app = express();
+const multer = require("multer");
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 const mongoose = require("mongoose");
+// mongoose.connect(
+//   "mongodb+srv://fawazsho:password2001@fawz.rqoa1wg.mongodb.net/restaurants",
+//   {
+//     useNewUrlParser: true,
+//   }
+// );
+
 mongoose.connect(
-  "mongodb+srv://fawazsho:password2001@fawz.rqoa1wg.mongodb.net/restaurants",
+  "mongodb+srv://fawazsho:password2001@cluster0.decz2qu.mongodb.net/restaurants",
   {
     useNewUrlParser: true,
   }
 );
+
 const usersmodel = require("./models/Users");
 
 const restaurantmodel = require("./models/Restaurant");
@@ -38,7 +49,7 @@ app.post("/users/post", async (req, res) => {
 //this is  a post method use it to test the restaurant post method
 //http://localhost:3000/restaurant/post/?restaurant_name=alohaaa&is_disabled=false&user_id=63ca8d1e27263a7f82b6121e
 //
-app.post("/restaurant/post", async (req, res) => {
+app.post("/restaurant/post", upload.single("resto_logo"), async (req, res) => {
   const { restaurant_name, is_disabled, user_id } = req.query;
 
   if (!restaurant_name) {
@@ -48,10 +59,17 @@ app.post("/restaurant/post", async (req, res) => {
       message: "your messing a restaurant name ",
     });
   } else {
+    if (!req.file) {
+      return res.status(400).send({ error: "No file was uploaded." });
+    }
     const restaurantinfo = new restaurantmodel({
       user_id: user_id,
       restaurant_name: restaurant_name,
       is_disabled: is_disabled,
+      resto_logo: {
+        data: req.file.buffer,
+        contentType: req.file.mimetype,
+      },
     });
     await restaurantinfo.save();
   }
@@ -114,6 +132,28 @@ app.get("/categories/items", async (req, res) => {
   const { cat_id } = req.query;
   const items = await itemmodel.find({ cat_id });
   res.json(items);
+});
+
+app.get("/restaurants", async (req, res) => {
+  try {
+    const { user_id } = req.query;
+    const resto = await restaurantmodel.find({ user_id });
+    if (!resto) {
+      return res.status(404).send({ error: "No restaurant found" });
+    }
+
+    res.contentType(resto[0].resto_logo.contentType);
+    res.send(resto[0].resto_logo.data);
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.get("/restaurants/restaurant_name", async (req, res) => {
+  const { user_id } = req.query;
+  const resto = await restaurantmodel.find({ user_id });
+  console.log(resto[0].restaurant_name);
+  res.send(resto[0].restaurant_name);
 });
 
 // this is the end of the getters
