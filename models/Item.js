@@ -18,7 +18,7 @@ const itemschema = new mongoose.Schema({
     require: true,
   },
 
-  item_tags: [String],
+  item_tags: Array,
 });
 
 module.exports = mongoose.model("Items", itemschema);
