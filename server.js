@@ -4,6 +4,7 @@ const multer = require("multer");
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 const cors = require("cors");
+const fs = require('fs');
 const bodyParser = require('body-parser');
 app.use(cors());
 app.use(bodyParser.json());
@@ -31,7 +32,7 @@ const itemmodel = require("./models/Item");
 // this code is used to create a new user
 app.post("/users/post", async (req, res) => {
  
-  console.log("reqqqqqqqdksad;as;dsaldjaslkdjaslkdjsalkdjsalkdjlqqqqqqqqqqq",req.body)
+  console.log("salkdjlqqqqqqqqqqq",req.body)
   if (!req.body.username || !req.body.password || !req.body.role) {
     res.send({
       status: 403,
@@ -46,7 +47,7 @@ app.post("/users/post", async (req, res) => {
       role: req.body.role
     });
     await user_information.save();
-    res.send("its done rasha ")
+    res.send(user_information._id)
   }
 });
 
@@ -54,32 +55,40 @@ app.post("/users/post", async (req, res) => {
 //this is  a post method use it to test the restaurant post method
 //http://localhost:3000/restaurant/post/?restaurant_name=alohaaa&is_disabled=false&user_id=63ca8d1e27263a7f82b6121e
 //
-app.post("/restaurant/post", upload.single("resto_logo"), async (req, res) => {
- 
-
+app.post("/restaurant/post", upload.single("resto_logo"),  async (req, res) => {
   if (!req.body.restaurant_name) {
     res.send({
       status: 403,
       error: true,
-      message: "your messing a restaurant name ",
+      message: "your missing a restaurant name ",
     });
   } else {
+    let logoData;
+    let logoContentType;
+
     if (!req.file) {
-      return res.status(400).send({ error: "No file was uploaded." });
+      const defaultImage = fs.readFileSync('logo.jpg');
+      logoData = defaultImage;
+      logoContentType = 'image/jpeg';
+    } else {
+      logoData = req.file.buffer;
+      logoContentType = req.file.mimetype;
     }
+
     const restaurantinfo = new restaurantmodel({
       user_id: req.body.user_id,
       restaurant_name: req.body.restaurant_name,
       is_disabled: req.body.is_disabled,
       resto_logo: {
-        data: req.file.buffer,
-        contentType: req.file.mimetype,
+        data: logoData,
+        contentType: logoContentType,
       },
     });
     await restaurantinfo.save();
     res.send("everything is working")
   }
 });
+
 // this code is used to post a category into a restaurant using the restaurant id
 
 
@@ -148,7 +157,7 @@ app.get("/allrestaurants", async (req, res) => {
   res.send(items);
 });
 
-app.get("/restaurants", async (req, res) => {
+app.get("/restaurants/logos", async (req, res) => {
   try {
     const  user_id  = req.body.user_id;
     const resto = await restaurantmodel.find({ user_id });
@@ -195,6 +204,25 @@ app.put("/category/item", async (req, res) => {
   res.send("the item have been edited ");
 });
 
+
+
+
+
+
+
+app.put("/restaurant/logo", upload.single("resto_logo"), async (req, res) => {
+  const restaurant = await restaurantmodel.findById(req.body._id);
+  if (!req.file) {
+    return res.status(400).send({ error: "No file was uploaded." });
+  } else {
+    restaurant.resto_logo = {
+      data: req.file.buffer,
+      contentType: req.file.mimetype,
+    };
+    await restaurant.save();
+     res.send("everything is working fawaz");
+  }
+});
 
 
 
