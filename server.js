@@ -138,10 +138,13 @@ app.post("/item/post", async (req, res) => {
 });
 
 // getters to the categories and items inside categoriesssssss
-app.get("/categories", async (req, res) => {
+app.get("/categories/", async (req, res) => {
   const { resto_id } = req.body;
+  if (!resto_id){
+    res.send("put the resto_id ")
+  }
   const category = await categoriesmodel.find({ resto_id });
-  res.json(category);
+  res.send(category);
 });
 app.get("/categories/items", async (req, res) => {
   const { cat_id } = req.body;
