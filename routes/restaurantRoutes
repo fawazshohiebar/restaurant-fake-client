@@ -1,0 +1,16 @@
+const express = require('express');
+const {secure} =require('../middleware/authentication')
+const router = express.Router()
+//requireing the controller of the create user
+const { postRestaurant,getAll,restoLogos,restoName, changeLogo,disableResto}= require('../controllers/restaurantController');
+
+
+
+router.post('/post',secure,postRestaurant)
+router.put('/logo',changeLogo)
+router.put('/isdisabled',disableResto)
+router.get('/logos',restoLogos)
+router.get('/allrestaurants',getAll)
+router.get('/restaurant_name',restoName)
+
+module.exports=router;
