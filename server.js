@@ -4,9 +4,15 @@ const mongoose = require("mongoose");
 const { errorHandler } = require("./middleware/errorHandler");
 const app = express();
 const bodyParser = require('body-parser');
+const path =require('path')
 const multer = require("multer");
-const storage = multer.memoryStorage();
-const upload = multer({ storage });
+const storage = multer.diskStorage({
+    destination:"uploads",
+    filename: (req,file,cb)=>{
+      cb(null,file.originalname);
+    }
+  });
+  const upload = multer({ storage : storage });
 const cors = require("cors");
 const fs = require('fs');
 const colors= require('colors')
@@ -34,6 +40,9 @@ app.use("/users", userRoutes);
 app.use("/categories", categoryRoutes);
 
 app.use("/restaurants",resRoutes );
+app.use(express.static(__dirname, { // host the whole directory
+  extensions: ["html", "htm", "gif", "png"],
+}))
 
 app.listen(port, () => console.log(`server running on port ${port}`));
 

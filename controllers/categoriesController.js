@@ -1,5 +1,5 @@
 const asyncHandler = require("express-async-handler");
-const categoriesmodel = require("../models/Restaurant");
+const categoriesmodel = require("../models/categories");
 const itemmodel = require("../models/Item");
 
 // this code is used to post a category into a restaurant using the restaurant id
@@ -23,6 +23,44 @@ const postCat= asyncHandler( async (req, res) => {
       res.send("the category is being added ");
     }
   });
+
+
+const itempost=asyncHandler(async (req,res)=>{
+
+
+  if (!req.body.cat_id || !req.body.item_name || !req.body.item_description || !req.body.item_price || !req.body.item_tags) {
+    res.send({
+      status: 403,
+      error: true,
+      message: "your messing something ",
+    });
+  } else {
+    const item_info = new itemmodel({
+      cat_id: req.body.cat_id,
+      item_name: req.body.item_name,
+      item_description: req.body.item_description,
+      item_price: req.body.item_price,
+      item_tags: req.body.item_tags,
+    });
+    await item_info.save();
+    res.send("the item have been added ");
+  }
+
+
+
+})
+
+
+
+
+
+
+
+
+
+
+
+
 
   
 //   app.put("/categories/item/put"
@@ -52,12 +90,10 @@ const updateCatItem= asyncHandler(  async (req, res) => {
 //app.delete("/categories/items/delete"
 // use to delete an item inside a category
 const deleteCatItem= asyncHandler(  async (req, res) => {
-    const _id = req.body;
-  if(!_id){
-    res.status(400).send('item does not existor deleted already')
-  }
-    const item = await itemmodel.findByIdAndDelete(_id);
-    res.send("donee the item have been deleted ");
+  const _id = req.query;
+
+  const item = await itemmodel.findByIdAndDelete(_id);
+  res.send("donee the item have been deleted ");;
   });
 
 
@@ -87,8 +123,8 @@ const getCatsByResto= asyncHandler(  async (req, res) => {
 const getItemsByCats= asyncHandler(  async (req, res) => {
     const { cat_id } = req.query;
     const items = await itemmodel.find({ cat_id });
-    res.send(items);
+    res.json(items);
   });
  
 
-  module.exports={getItemsByCats,getCatsByResto,deleteCat,deleteCatItem,updateCatItem,postCat}
+  module.exports={getItemsByCats,getCatsByResto,deleteCat,deleteCatItem,updateCatItem,postCat,itempost}

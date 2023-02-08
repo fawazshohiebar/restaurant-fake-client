@@ -1,45 +1,58 @@
 const asyncHandler = require("express-async-handler");
 const restaurantmodel = require("../models/Restaurant");
 
-
+const path =require('path')
+const multer = require("multer");
+const storage = multer.diskStorage({
+  destination:"uploads",
+  filename: (req,file,cb)=>{
+    cb(null,file.originalname);
+  }
+});
+const upload = multer({ storage : storage });
 
 
 
 
 // this is used to post a new restaurant
 
-const postRestaurant= asyncHandler( async (req, res) => {
-    if (!req.body.restaurant_name) {
-      res.send({
-        status: 403,
-        error: true,
-        message: "your missing a restaurant name ",
-      });
-    } else {
-      let logoData;
-      let logoContentType;
-  
-      if (!req.file) {
-        const defaultImage = fs.readFileSync('logo.jpg');
-        logoData = defaultImage;
-        logoContentType = 'image/jpeg';
-      } else {
-        logoData = req.file.buffer;
-        logoContentType = req.file.mimetype;
-      }
-  
-      const restaurantinfo = new restaurantmodel({
-        user_id: req.body.user_id,
-        restaurant_name: req.body.restaurant_name,
-        is_disabled: req.body.is_disabled,
-        resto_logo: {
-          data: logoData,
-          contentType: logoContentType,
-        },
-      });
-      await restaurantinfo.save();
-      res.send("everything is working")
-    }
+const postRestaurant= asyncHandler(async (req, res) => {
+  if (!req.body.restaurant_name) {
+    return res.status(400).send({
+      error: true,
+      message: "Missing required field: restaurant_name",
+    });
+  }
+
+  let resto_logo;
+  if (!req.file) {
+    resto_logo = path.join( "./logo.jpg");
+  } else {
+    resto_logo = req.file.path;
+  }
+
+  const restaurantinfo = new restaurantmodel({
+    user_id: req.body.user_id,
+    restaurant_name: req.body.restaurant_name,
+    is_disabled: req.body.is_disabled || false,
+    resto_logo: resto_logo,
+  });
+
+  try {
+    await restaurantinfo.save();
+    return res.send({
+      message: "Restaurant information saved successfully.",
+    });
+  } catch (error) {
+    return res.status(500).send({
+      error: true,
+      message: "Failed to save restaurant information.",
+    });
+  }
+
+
+
+
   });
 // app.get("/restaurants/allrestaurants",
   // used to get all of the restaurants for the superadmin
@@ -54,14 +67,13 @@ const postRestaurant= asyncHandler( async (req, res) => {
   //used to get restaurants logo
   const restoLogos= asyncHandler( async (req, res) => {
     try {
-      const  _id  = req.body._id;
+      const  _id  = req.query._id;
       const resto = await restaurantmodel.find({ _id });
       if (!resto) {
         return res.status(404).send({ error: "No restaurant found" });
       }
   
-      res.contentType(resto[0].resto_logo.contentType);
-      res.send(resto[0].resto_logo.data);
+      res.json(resto[0].resto_logo);
     } catch (error) {
       res.status(500).send(error);
     }
@@ -69,7 +81,7 @@ const postRestaurant= asyncHandler( async (req, res) => {
 //used to get restaurant name
 //app.get("/restaurants/restaurant_name"
 const restoName= asyncHandler(async (req, res) => {
-    const _id=req.body._id;
+    const _id=req.query._id;
     const resto = await restaurantmodel.find({ _id });
     console.log(resto[0].restaurant_name);
     res.send(resto[0].restaurant_name);
@@ -84,10 +96,7 @@ const changeLogo= asyncHandler( async (req, res) => {
     if (!req.file) {
       return res.status(400).send({ error: "No file was uploaded." });
     } else {
-      restaurant.resto_logo = {
-        data: req.file.buffer,
-        contentType: req.file.mimetype,
-      }
+      restaurant.resto_logo = req.file.path;
       await restaurant.save();
        res.status(200).send('Logo Updated Successfully');
     }
@@ -105,12 +114,24 @@ const changeLogo= asyncHandler( async (req, res) => {
     }
    
   
-    res.status(200).send(restaurant_name);
+    res.status(200).send("the is_disabled have been edited ");
   });
 
 
 
   
+const changerestoname=asyncHandler(async(req,res)=>{
+  const {_id,restaurant_name} = req.body;
+  const restaurant = await restaurantmodel.findById(_id);
+  
+  if (restaurant) {
+    restaurant.restaurant_name = restaurant_name;
+    await restaurant.save();
+    res.send(`The restaurant name has been edited to "${restaurant_name}".`);
+  } else {
+    res.status(404).send("The restaurant with the given ID was not found.");
+  }
+})
 
 
 
@@ -150,5 +171,4 @@ const changeLogo= asyncHandler( async (req, res) => {
 
 
 
-
-  module.exports ={postRestaurant,getAll,restoLogos,restoName,changeLogo,disableResto}
+  module.exports ={changerestoname,postRestaurant,getAll,restoLogos,restoName,changeLogo,disableResto}

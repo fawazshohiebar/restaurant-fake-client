@@ -9,8 +9,8 @@ const restaurantschema = new mongoose.Schema({
     require: true,
   },
   resto_logo: {
-    data: Buffer,
-    contentType: String,
+    type:String,
+    required:true
   },
 
   is_disabled: {
