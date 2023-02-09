@@ -13,7 +13,7 @@ const path =require('path')
 
   const fs = require('fs');
 //requireing the controller of the create user
-const { postRestaurant,getAll,restoLogos,restoName, changeLogo,disableResto,changerestoname}= require('../controllers/restaurantController');
+const { postRestaurant,getAll,restoLogos,restoName, changeLogo,disableResto,changerestoname,getresto}= require('../controllers/restaurantController');
 
 
 
@@ -24,5 +24,6 @@ router.put('/name',changerestoname)
 router.get('/logos',restoLogos)
 router.get('/allrestaurants',getAll)
 router.get('/restaurant_name',restoName)
+router.get('/restaurantid',getresto)
 
 module.exports=router;

@@ -135,6 +135,11 @@ const changerestoname=asyncHandler(async(req,res)=>{
 
 
 
+const getresto =asyncHandler(async (req,res)=>{
+  const user_id=req.query.user_id
+  const resto = await restaurantmodel.find({ user_id },{_id:1});
+  res.send(resto[0])
+})
 
 
 
@@ -171,4 +176,6 @@ const changerestoname=asyncHandler(async(req,res)=>{
 
 
 
-  module.exports ={changerestoname,postRestaurant,getAll,restoLogos,restoName,changeLogo,disableResto}
+
+
+  module.exports ={getresto,changerestoname,postRestaurant,getAll,restoLogos,restoName,changeLogo,disableResto}
