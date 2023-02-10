@@ -100,7 +100,7 @@ const deleteCatItem= asyncHandler(  async (req, res) => {
   // BE CAREFUL IF YOU USE IT
 //app.delete("/categories/category/delete"
 const deleteCat= asyncHandler(  async (req, res) => {
-    const _id = req.body;
+    const _id = req.query;
   
     const item = await categoriesmodel.findByIdAndDelete(_id);
     res.send("donee the category has been deleted ");
